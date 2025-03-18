@@ -1,22 +1,22 @@
 from queue import Queue
-from rknn.api import RKNN
+from rknnlite.api import RKNNLite
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 def initRKNN(rknnModel="./rknnModel/yolov5s.rknn", id=0):
-    rknn_lite = RKNN()
+    rknn_lite = RKNNLite()
     ret = rknn_lite.load_rknn(rknnModel)
     if ret != 0:
         print("Load RKNN rknnModel failed")
         exit(ret)
     if id == 0:
-        ret = rknn_lite.init_runtime(core_mask=RKNN.NPU_CORE_0)
+        ret = rknn_lite.init_runtime(core_mask=RKNNLite.NPU_CORE_0)
     elif id == 1:
-        ret = rknn_lite.init_runtime(core_mask=RKNN.NPU_CORE_1)
+        ret = rknn_lite.init_runtime(core_mask=RKNNLite.NPU_CORE_1)
     elif id == 2:
-        ret = rknn_lite.init_runtime(core_mask=RKNN.NPU_CORE_2)
+        ret = rknn_lite.init_runtime(core_mask=RKNNLite.NPU_CORE_2)
     elif id == -1:
-        ret = rknn_lite.init_runtime(core_mask=RKNN.NPU_CORE_0_1_2)
+        ret = rknn_lite.init_runtime(core_mask=RKNNLite.NPU_CORE_0_1_2)
     else:
         ret = rknn_lite.init_runtime()
     if ret != 0:
