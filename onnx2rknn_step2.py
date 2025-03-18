@@ -4,17 +4,34 @@ from rknn.api import RKNN
 
 conf_thres = 0.25
 iou_thres = 0.45
-input_width = 640
-input_height = 480
+input_width = 1280
+input_height = 720
 model_name = 'yolov8n'
 model_path = "./model"
 config_path = "./config"
 result_path = "./result"
-image_path = "./dataset/bus.jpg"
-video_path = "test.mp4"
-video_inference = False
-RKNN_MODEL = f'{model_name}-{input_height}-{input_width}.rknn'
-CLASSES = ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee', 'skis','snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket', 'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush']
+image_path = "ac_all_1.jpg"
+video_path = "ac_all_video.mp4"
+video_inference = True
+RKNN_MODEL = f'{model_name}-{input_width}-{input_height}.rknn'
+CLASSES = ['WB MSW v3',
+'Wiren Board 7 On',
+'Fluid Sensor',
+'Fan On',
+'Red Button Disabled',
+'Counter',
+'Lamp',
+'Wiren Board 7 Off',
+'6-Channel Relay On',
+'C16',
+'MEGA MT On',
+'Multi Channel Energy Meter On',
+'WB MSW v3 Alarm',
+'Red Button Enabled',
+'Fan Off',
+'Multi Channel Energy Meter Off',
+'6-Channel Relay Off',
+'MEGA MT Off']
 
 if __name__ == '__main__':
     isExist = os.path.exists(result_path)
@@ -26,9 +43,9 @@ if __name__ == '__main__':
 
     # Build model
     print('--> hybrid_quantization_step2')
-    ret = rknn.hybrid_quantization_step2(model_input=f'{config_path}/{model_name}-{input_height}-{input_width}.model',
-                                         data_input=f'{config_path}/{model_name}-{input_height}-{input_width}.data',
-                                         model_quantization_cfg=f'{config_path}/{model_name}-{input_height}-{input_width}.quantization.cfg')
+    ret = rknn.hybrid_quantization_step2(model_input=f'{config_path}/{model_name}-{input_width}-{input_height}.model',
+                                         data_input=f'{config_path}/{model_name}-{input_width}-{input_height}.data',
+                                         model_quantization_cfg=f'{config_path}/{model_name}-{input_width}-{input_height}.quantization.cfg')
     
     if ret != 0:
         print('hybrid_quantization_step2 failed!')
@@ -60,7 +77,7 @@ if __name__ == '__main__':
             ret, image_3c = cap.read()
             if not ret:
                 break
-            image_4c, image_3c = preprocess(image_3c, input_height, input_width)
+            image_4c, image_3c = preprocess(image_3c, input_width, input_height)
             print('--> Running model for video inference')
             outputs = rknn.inference(inputs=[image_3c])
             colorlist = gen_color(len(CLASSES))
@@ -76,7 +93,7 @@ if __name__ == '__main__':
     else:
         # Preprocess input image
         image_3c = cv2.imread(image_path)
-        image_4c, image_3c = preprocess(image_3c, input_height, input_width)
+        image_4c, image_3c = preprocess(image_3c, input_width, input_height)
         print('--> Running model for image inference')
         print(image_3c.shape)
         outputs = rknn.inference(inputs=[image_3c])

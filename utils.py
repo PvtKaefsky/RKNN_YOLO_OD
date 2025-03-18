@@ -84,7 +84,7 @@ def non_max_suppression(
     # Checks
     assert 0 <= conf_thres <= 1, f'Invalid Confidence threshold {conf_thres}, valid values are between 0.0 and 1.0'
     assert 0 <= iou_thres <= 1, f'Invalid IoU {iou_thres}, valid values are between 0.0 and 1.0'
-    
+
     #【lulu】prediction.shape[1]：box + cls + num_masks
     bs = prediction.shape[0]              # batch size
     nc = nc or (prediction.shape[1] - 4)  # number of classes
@@ -102,7 +102,7 @@ def non_max_suppression(
     merge = False  # use merge-NMS
 
     t = time.time()
-    output = [np.zeros((0,6 + nm))] * bs ## 【lulu】
+    output = [np.zeros((0,6 + nc))] * bs ## 【lulu】
 
     for xi, x in enumerate(prediction):  # image_3c index, image_3c inference
         # Apply constraints

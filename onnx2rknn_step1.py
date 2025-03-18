@@ -1,15 +1,15 @@
 import os, glob, shutil
 from rknn.api import RKNN
 
-input_width = 640
-input_height = 480
+input_width = 1280
+input_height = 720
 model_path = "./model"
 dataset_path = "./dataset"
 config_path = "./config"
 dataset_file = "./dataset.txt"
 model_name = 'yolov8n'
 platform = "rk3588"
-ONNX_MODEL = f'{model_path}/{model_name}-{input_height}-{input_width}.onnx'
+ONNX_MODEL = f'{model_path}/{model_name}-{input_width}-{input_height}.onnx'
 OUT_NODE = ["output0"]
 
 def get_dataset_txt(dataset_path, dataset_savefile):
@@ -62,9 +62,9 @@ if __name__ == '__main__':
     rknn.release()
 
     print('--> Move hybrid quatization config into config folder')
-    shutil.move(f"{model_name}-{input_height}-{input_width}.data", f"{config_path}/{model_name}-{input_height}-{input_width}.data")
-    shutil.move(f"{model_name}-{input_height}-{input_width}.model", f"{config_path}/{model_name}-{input_height}-{input_width}.model")
-    shutil.move(f"{model_name}-{input_height}-{input_width}.quantization.cfg", f"{config_path}/{model_name}-{input_height}-{input_width}.quantization.cfg")
+    shutil.move(f"{model_name}-{input_width}-{input_height}.data", f"{config_path}/{model_name}-{input_width}-{input_height}.data")
+    shutil.move(f"{model_name}-{input_width}-{input_height}.model", f"{config_path}/{model_name}-{input_width}-{input_height}.model")
+    shutil.move(f"{model_name}-{input_width}-{input_height}.quantization.cfg", f"{config_path}/{model_name}-{input_width}-{input_height}.quantization.cfg")
 
     print('--> Move onnx config into config folder')
     move_onnx_config()
