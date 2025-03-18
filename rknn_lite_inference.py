@@ -4,17 +4,34 @@ from rknnlite.api import RKNNLite
 
 conf_thres = 0.25
 iou_thres = 0.45
-input_width = 640
-input_height = 480
+input_width = 1280
+input_height = 736
 model_name = 'yolov8n'
 model_path = "./model"
 config_path = "./config"
 result_path = "./result"
-image_path = "./dataset/bus.jpg"
-video_path = "test.mp4"
-video_inference = False
-RKNN_MODEL = f'{model_path}/{model_name}-{input_height}-{input_width}.rknn'
-CLASSES = ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee', 'skis','snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket', 'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush']
+image_path = "ac_all_1.jpg"
+video_path = 0
+video_inference = True
+RKNN_MODEL = f'{model_path}/{model_name}-{input_width}-{input_height}.rknn'
+CLASSES = ['WB MSW v3',
+'Wiren Board 7 On',
+'Fluid Sensor',
+'Fan On',
+'Red Button Disabled',
+'Counter',
+'Lamp',
+'Wiren Board 7 Off',
+'6-Channel Relay On',
+'C16',
+'MEGA MT On',
+'Multi Channel Energy Meter On',
+'WB MSW v3 Alarm',
+'Red Button Enabled',
+'Fan Off',
+'Multi Channel Energy Meter Off',
+'6-Channel Relay Off',
+'MEGA MT Off']
 isExist = os.path.exists(result_path)
 
 
