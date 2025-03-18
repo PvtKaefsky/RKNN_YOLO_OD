@@ -61,12 +61,8 @@ if __name__ == '__main__':
             results = postprocess(outputs, image_4c, image_3c, conf_thres, iou_thres, classes=len(CLASSES)) ##[box,mask,shape]
             results = results[0]              ## batch=1
             boxes, shape = results
-            if isinstance(boxes, np.ndarray):
-                vis_img = vis_result(image_3c,  results, colorlist, CLASSES, result_path)
-                cv2.imshow("vis_img", vis_img)
-                print('--> Save inference result')
-            else:
-                print("No Detection result")
+            vis_img = vis_result(image_3c,  results, colorlist, CLASSES, result_path)
+            cv2.imshow("vis_img", vis_img)
             cv2.waitKey(10)
     else:
         image_3c = cv2.imread(image_path)
