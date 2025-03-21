@@ -1,4 +1,4 @@
-import os, shutil, numpy as np, cv2
+import os, shutil, time, numpy as np, cv2
 from utils import *
 from rknn.api import RKNN
 
@@ -14,24 +14,10 @@ image_path = "ac_all_1.jpg"
 video_path = "ac_all_video.mp4"
 video_inference = True
 RKNN_MODEL = f'{model_name}-{input_width}-{input_height}.rknn'
-CLASSES = ['WB MSW v3',
-'Wiren Board 7 On',
-'Fluid Sensor',
-'Fan On',
-'Red Button Disabled',
-'Counter',
-'Lamp',
-'Wiren Board 7 Off',
-'6-Channel Relay On',
-'C16',
-'MEGA MT On',
-'Multi Channel Energy Meter On',
-'WB MSW v3 Alarm',
-'Red Button Enabled',
-'Fan Off',
-'Multi Channel Energy Meter Off',
-'6-Channel Relay Off',
-'MEGA MT Off']
+CLASSES = ['WB MSW v3', 'Wiren Board 7 On', 'Fluid Sensor', 'Fan On', 'Red Button Disabled',
+           'Counter', 'Lamp', 'Wiren Board 7 Off', '6-Channel Relay On', 'C16', 'MEGA MT On',
+           'Multi Channel Energy Meter On', 'WB MSW v3 Alarm', 'Red Button Enabled', 'Fan Off',
+           'Multi Channel Energy Meter Off', '6-Channel Relay Off', 'MEGA MT Off']
 
 if __name__ == '__main__':
     isExist = os.path.exists(result_path)
@@ -73,13 +59,15 @@ if __name__ == '__main__':
 
     if video_inference == True:
         cap = cv2.VideoCapture(video_path)
+        frames, loopTime, initTime = 0, time.time(), time.time()
         while(True):
             ret, image_3c = cap.read()
             if not ret:
                 break
             image_4c, image_3c, ratio, dwdh = preprocess(image_3c, input_width, input_height)
             print('--> Running model for video inference')
-            outputs = rknn.inference(inputs=[image_4c])
+            outputs = rknn.inference(inputs=[image_3c])
+            frames += 1
             colorlist = gen_color(len(CLASSES))
             results = postprocess(outputs, image_4c, image_3c, conf_thres, iou_thres, ratio, dwdh, classes=len(CLASSES)) ##[box,mask,shape]
             results = results[0]              ## batch=1
@@ -87,6 +75,11 @@ if __name__ == '__main__':
             vis_img = vis_result(image_3c,  results, colorlist, CLASSES, result_path)
             cv2.imshow("vis_img", vis_img)
             cv2.waitKey(10)
+            if frames % 30 == 0:
+                print(f"Average FPS (last 30 frames): {30 / (time.time() - loopTime):.2f}")
+                loopTime = time.time()
+        avg_fps = frames / (time.time() - initTime)
+        print(f"Overall Average FPS: {avg_fps:.2f}")
     else:
         # Preprocess input image
         image_3c = cv2.imread(image_path)

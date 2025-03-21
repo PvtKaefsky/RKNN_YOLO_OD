@@ -146,7 +146,7 @@ def preprocess_onnx(image, input_width, input_height):
     image_4c = np.transpose(image_4c, (2, 0, 1))
     image_4c = np.expand_dims(image_4c, axis=0).astype(np.float16)
     image_4c = np.ascontiguousarray(image_4c)
-    return image_4c, image_3c, ratio, dwdh
+    return image_4c, image_3c
 
 def postprocess(preds, img, orig_img, OBJ_THRESH, NMS_THRESH, ratio, dwdh, classes=None):
     p = non_max_suppression(preds[0],
@@ -168,6 +168,24 @@ def postprocess(preds, img, orig_img, OBJ_THRESH, NMS_THRESH, ratio, dwdh, class
         pred[:, :4] /= ratio[0]
         clip_boxes(pred[:, :4], shape)
 
+        results.append([pred[:, :6], shape[:2]])
+    return results
+
+def postprocess_onnx(preds, img, orig_img, OBJ_THRESH, NMS_THRESH, classes=None):
+    p = non_max_suppression(preds[0],
+                            OBJ_THRESH,
+                            NMS_THRESH,
+                            agnostic=False,
+                            max_det=300,
+                            nc=classes,
+                            classes=None)
+    results = []
+    for i, pred in enumerate(p):
+        shape = orig_img.shape
+        if not len(pred):
+            results.append([[], []])
+            continue
+        pred[:, :4] = scale_boxes(img.shape[2:], pred[:, :4], shape).round()
         results.append([pred[:, :6], shape[:2]])
     return results
 
