@@ -33,11 +33,11 @@ if video_inference == True:
         if not ret:
             break
         print('--> Running model for video inference')
-        image_4c, image_3c = preprocess_onnx(image_3c, input_width, input_height)
+        image_4c, image_3c = preprocess(image_3c, input_width, input_height)
         outputs = sess.run(output_list, {sess.get_inputs()[0].name: image_4c.astype(np.float32)})
         frames += 1
         colorlist = gen_color(len(CLASSES))
-        results = postprocess_onnx(outputs, image_4c, image_3c, conf_thres, iou_thres) ##[box,mask,shape]
+        results = postprocess(outputs, image_4c, image_3c, conf_thres, iou_thres) ##[box,mask,shape]
         results = results[0]              ## batch=1
         boxes, shape = results
         vis_img = vis_result(image_3c, results, colorlist, CLASSES, result_path)
@@ -51,10 +51,10 @@ if video_inference == True:
 
 else:
     image_3c = cv2.imread(image_path)
-    image_4c, image_3c = preprocess_onnx(image_3c, input_width, input_height)
+    image_4c, image_3c = preprocess(image_3c, input_width, input_height)
     outputs = sess.run(output_list, {sess.get_inputs()[0].name: image_4c.astype(np.float32)})
     colorlist = gen_color(len(CLASSES))
-    results = postprocess_onnx(outputs, image_4c, image_3c, conf_thres, iou_thres) ##[box,mask,shape]
+    results = postprocess(outputs, image_4c, image_3c, conf_thres, iou_thres) ##[box,mask,shape]
     results = results[0]              ## batch=1
     boxes, shape = results
     vis_img = vis_result(image_3c, results, colorlist, CLASSES, result_path)

@@ -12,7 +12,7 @@ config_path = "./config"
 result_path = "./result"
 image_path = "ac_all_1.jpg"
 video_path = "ac_all_video.mp4"
-video_inference = True
+video_inference = False
 RKNN_MODEL = f'{model_name}-{input_width}-{input_height}.rknn'
 CLASSES = ['WB MSW v3', 'Wiren Board 7 On', 'Fluid Sensor', 'Fan On', 'Red Button Disabled',
            'Counter', 'Lamp', 'Wiren Board 7 Off', '6-Channel Relay On', 'C16', 'MEGA MT On',
