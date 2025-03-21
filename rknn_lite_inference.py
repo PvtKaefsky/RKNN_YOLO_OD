@@ -2,7 +2,7 @@ import os, cv2, time, numpy as np
 from utils import *
 from rknnlite.api import RKNNLite
 
-conf_thres = 0.25
+conf_thres = 0.1
 iou_thres = 0.45
 input_width = 1280
 input_height = 736

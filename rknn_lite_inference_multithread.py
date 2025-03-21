@@ -6,7 +6,7 @@ from utils import *
 from rknnpool import rknnPoolExecutor
 
 # Параметры
-conf_thres = 0.25
+conf_thres = 0.1
 iou_thres = 0.45
 input_width = 1280
 input_height = 736
@@ -29,18 +29,13 @@ if not os.path.exists(result_path):
     os.makedirs(result_path)
 
 def inference_func(rknn_lite, frame):
-    image_4c, image_3c = preprocess(frame, input_height, input_width)
+    image_4c, image_3c = preprocess(frame, input_width, input_height)
     outputs = rknn_lite.inference(inputs=[image_3c])
-    outputs[0] = np.squeeze(outputs[0])
-    outputs[0] = np.expand_dims(outputs[0], axis=0)
     results = postprocess(outputs, image_4c, image_3c, conf_thres, iou_thres, classes=len(CLASSES))
     results = results[0]
     boxes, shape = results
     colorlist = gen_color(len(CLASSES))
-    if isinstance(boxes, np.ndarray) and len(boxes):
-        vis_img = vis_result(image_3c, results, colorlist, CLASSES, result_path)
-    else:
-        vis_img = cv2.cvtColor(image_3c, cv2.COLOR_RGB2BGR)
+    vis_img = vis_result(image_3c, results, colorlist, CLASSES, result_path)
     return vis_img
 
 if __name__ == '__main__':
