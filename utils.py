@@ -135,8 +135,16 @@ def preprocess(image, input_width, input_height):
     image_3c = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     image_3c, ratio, dwdh = letterbox(image_3c, new_shape=[input_height, input_width], auto=False)
     image_4c = np.array(image_3c) / 255.0
-    # image_4c = np.transpose(image_4c, (2, 0, 1))
-    image_4c = np.expand_dims(image_4c, axis=0).astype(np.uint8)
+    image_4c = np.expand_dims(image_4c, axis=0).astype(np.float16)
+    image_4c = np.ascontiguousarray(image_4c)
+    return image_4c, image_3c, ratio, dwdh
+
+def preprocess_onnx(image, input_width, input_height):
+    image_3c = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    image_3c, ratio, dwdh = letterbox(image_3c, new_shape=[input_height, input_width], auto=False)
+    image_4c = np.array(image_3c) / 255.0
+    image_4c = np.transpose(image_4c, (2, 0, 1))
+    image_4c = np.expand_dims(image_4c, axis=0).astype(np.float16)
     image_4c = np.ascontiguousarray(image_4c)
     return image_4c, image_3c, ratio, dwdh
 

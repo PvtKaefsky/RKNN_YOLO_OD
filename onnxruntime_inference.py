@@ -6,24 +6,33 @@ from utils import *
 
 conf_thres = 0.25
 iou_thres = 0.45
-input_width = 640
-input_height = 480
+input_width = 1280
+input_height = 736
 result_path = "./result"
-image_path = "./dataset/bus.jpg"
+image_path = "ac_all_1.jpg"
+video_path = "ac_all_video.mp4"
 model_name = 'yolov8n'
 model_path = "./model"
-ONNX_MODEL = f"{model_path}/{model_name}-{input_height}-{input_width}.onnx"
-video_path = "test.mp4"
-video_inference = False
-CLASSES = ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light', 
-         'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow', 
-         'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee', 
-         'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 
-         'tennis racket', 'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 
-         'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch', 
-         'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone', 
-         'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors', 'teddy bear', 
-         'hair drier', 'toothbrush']
+ONNX_MODEL = f"{model_path}/{model_name}-{input_width}-{input_height}.onnx"
+video_inference = True
+CLASSES = ['WB MSW v3',
+'Wiren Board 7 On',
+'Fluid Sensor',
+'Fan On',
+'Red Button Disabled',
+'Counter',
+'Lamp',
+'Wiren Board 7 Off',
+'6-Channel Relay On',
+'C16',
+'MEGA MT On',
+'Multi Channel Energy Meter On',
+'WB MSW v3 Alarm',
+'Red Button Enabled',
+'Fan Off',
+'Multi Channel Energy Meter Off',
+'6-Channel Relay Off',
+'MEGA MT Off']
 
 sess = onnxruntime.InferenceSession(ONNX_MODEL)
 input_list = [sess.get_inputs()[i].name for i in range (len(sess.get_outputs()))]
@@ -39,10 +48,10 @@ if video_inference == True:
         if not ret:
             break
         print('--> Running model for video inference')
-        image_4c, image_3c = preprocess(image_3c, input_height, input_width)
+        image_4c, image_3c, ratio, dwdh = preprocess_onnx(image_3c, input_width, input_height)
         outputs = sess.run(output_list, {sess.get_inputs()[0].name: image_4c.astype(np.float32)})
         colorlist = gen_color(len(CLASSES))
-        results = postprocess(outputs, image_4c, image_3c, conf_thres, iou_thres) ##[box,mask,shape]
+        results = postprocess(outputs, image_4c, image_3c, conf_thres, iou_thres, ratio, dwdh) ##[box,mask,shape]
         results = results[0]              ## batch=1
         boxes, shape = results
         if isinstance(boxes, np.ndarray):
@@ -53,10 +62,10 @@ if video_inference == True:
         cv2.waitKey(10)
 else:
     image_3c = cv2.imread(image_path)
-    image_4c, image_3c = preprocess(image_3c, input_height, input_width)
+    image_4c, image_3c, ratio, dwdh = preprocess_onnx(image_3c, input_width, input_height)
     outputs = sess.run(output_list, {sess.get_inputs()[0].name: image_4c.astype(np.float32)})
     colorlist = gen_color(len(CLASSES))
-    results = postprocess(outputs, image_4c, image_3c, conf_thres, iou_thres) ##[box,mask,shape]
+    results = postprocess(outputs, image_4c, image_3c, conf_thres, iou_thres, ratio, dwdh) ##[box,mask,shape]
     results = results[0]              ## batch=1
     boxes, shape = results
     if isinstance(boxes, np.ndarray):

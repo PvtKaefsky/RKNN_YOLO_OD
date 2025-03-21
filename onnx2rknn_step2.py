@@ -79,7 +79,7 @@ if __name__ == '__main__':
                 break
             image_4c, image_3c, ratio, dwdh = preprocess(image_3c, input_width, input_height)
             print('--> Running model for video inference')
-            outputs = rknn.inference(inputs=[image_3c])
+            outputs = rknn.inference(inputs=[image_4c])
             colorlist = gen_color(len(CLASSES))
             results = postprocess(outputs, image_4c, image_3c, conf_thres, iou_thres, ratio, dwdh, classes=len(CLASSES)) ##[box,mask,shape]
             results = results[0]              ## batch=1
