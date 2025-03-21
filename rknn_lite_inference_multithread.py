@@ -29,11 +29,11 @@ if not os.path.exists(result_path):
     os.makedirs(result_path)
 
 def inference_func(rknn_lite, frame):
-    image_4c, image_3c = preprocess(frame, input_width, input_height)
-    outputs = rknn_lite.inference(inputs=[image_3c])
+    image_4c, image_3c, ratio, dwdh = preprocess(frame, input_width, input_height)
+    outputs = rknn_lite.inference(inputs=[image_4c])
     outputs[0] = np.squeeze(outputs[0])
     outputs[0] = np.expand_dims(outputs[0], axis=0)
-    results = postprocess(outputs, image_4c, image_3c, conf_thres, iou_thres, classes=len(CLASSES))
+    results = postprocess(outputs, image_4c, image_3c, conf_thres, iou_thres, ratio, dwdh, classes=len(CLASSES))
     results = results[0]
     boxes, shape = results
     colorlist = gen_color(len(CLASSES))

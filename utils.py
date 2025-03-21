@@ -135,12 +135,12 @@ def preprocess(image, input_width, input_height):
     image_3c = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     image_3c, ratio, dwdh = letterbox(image_3c, new_shape=[input_height, input_width], auto=False)
     image_4c = np.array(image_3c) / 255.0
-    image_4c = np.transpose(image_4c, (2, 0, 1))
-    image_4c = np.expand_dims(image_4c, axis=0).astype(np.float32)
+    # image_4c = np.transpose(image_4c, (2, 0, 1))
+    image_4c = np.expand_dims(image_4c, axis=0).astype(np.uint8)
     image_4c = np.ascontiguousarray(image_4c)
-    return image_4c, image_3c
+    return image_4c, image_3c, ratio, dwdh
 
-def postprocess(preds, img, orig_img, OBJ_THRESH, NMS_THRESH, classes=None):
+def postprocess(preds, img, orig_img, OBJ_THRESH, NMS_THRESH, ratio, dwdh, classes=None):
     p = non_max_suppression(preds[0],
                             OBJ_THRESH,
                             NMS_THRESH,
@@ -149,12 +149,17 @@ def postprocess(preds, img, orig_img, OBJ_THRESH, NMS_THRESH, classes=None):
                             nc=classes,
                             classes=None)
     results = []
-    for i, pred in enumerate(p):
+    for pred in p:
         shape = orig_img.shape
-        if not len(pred):
+        if len(pred) == 0:
             results.append([[], []])
             continue
-        pred[:, :4] = scale_boxes(img.shape[2:], pred[:, :4], shape).round()
+
+        # Учитываем padding (dwdh) и scale (ratio)
+        pred[:, :4] -= np.array([dwdh[0], dwdh[1], dwdh[0], dwdh[1]])
+        pred[:, :4] /= ratio[0]
+        clip_boxes(pred[:, :4], shape)
+
         results.append([pred[:, :6], shape[:2]])
     return results
 

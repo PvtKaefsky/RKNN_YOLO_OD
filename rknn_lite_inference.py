@@ -49,16 +49,16 @@ if __name__ == '__main__':
             if not ret:
                 break
             print('--> Running model for video inference')
-            image_4c, image_3c = preprocess(image_3c, input_height, input_width)
+            image_4c, image_3c, ratio, dwdh = preprocess(image_3c, input_height, input_width)
             ret = rknn_lite.init_runtime()
             start = time.time()
-            outputs = rknn_lite.inference(inputs=[image_3c])
+            outputs = rknn_lite.inference(inputs=[image_4c])
             stop = time.time()
             fps = round(1/(stop-start), 2)
             outputs[0]=np.squeeze(outputs[0])
             outputs[0] = np.expand_dims(outputs[0], axis=0)
             colorlist = gen_color(len(CLASSES))
-            results = postprocess(outputs, image_4c, image_3c, conf_thres, iou_thres, classes=len(CLASSES)) ##[box,mask,shape]
+            results = postprocess(outputs, image_4c, image_3c, conf_thres, iou_thres, ratio, dwdh, classes=len(CLASSES)) ##[box,mask,shape]
             results = results[0]              ## batch=1
             boxes, shape = results
             vis_img = vis_result(image_3c,  results, colorlist, CLASSES, result_path)
@@ -66,16 +66,16 @@ if __name__ == '__main__':
             cv2.waitKey(10)
     else:
         image_3c = cv2.imread(image_path)
-        image_4c, image_3c = preprocess(image_3c, input_height, input_width)
+        image_4c, image_3c, ratio, dwdh = preprocess(image_3c, input_height, input_width)
         ret = rknn_lite.init_runtime()
         start = time.time()
-        outputs = rknn_lite.inference(inputs=[image_3c])
+        outputs = rknn_lite.inference(inputs=[image_4c])
         stop = time.time()
         fps = round(1/(stop-start), 2)
         outputs[0]=np.squeeze(outputs[0])
         outputs[0] = np.expand_dims(outputs[0], axis=0)
         colorlist = gen_color(len(CLASSES))
-        results = postprocess(outputs, image_4c, image_3c, conf_thres, iou_thres, classes=len(CLASSES)) ##[box,mask,shape]
+        results = postprocess(outputs, image_4c, image_3c, conf_thres, iou_thres, ratio, dwdh, classes=len(CLASSES)) ##[box,mask,shape]
         results = results[0]              ## batch=1
         boxes, shape = results
         if isinstance(boxes, np.ndarray):
