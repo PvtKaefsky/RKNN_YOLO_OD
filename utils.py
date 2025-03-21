@@ -131,7 +131,7 @@ def letterbox(im, new_shape=(640, 640), color=(114, 114, 114), auto=True, scaleF
     im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)
     return im, ratio, (dw, dh)
 
-def preprocess(image, input_height, input_width):
+def preprocess(image, input_width, input_height):
     image_3c = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     image_3c, ratio, dwdh = letterbox(image_3c, new_shape=[input_height, input_width], auto=False)
     image_4c = np.array(image_3c) / 255.0
