@@ -62,6 +62,8 @@ if __name__ == '__main__':
         frames, loopTime, initTime = 0, time.time(), time.time()
         while(True):
             ret, image_3c = cap.read()
+            image_3c = cv2.flip(image_3c, 0)
+            image_3c = cv2.flip(image_3c, 1)
             if not ret:
                 break
             image_4c, image_3c = preprocess(image_3c, input_width, input_height)
