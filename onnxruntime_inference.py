@@ -30,6 +30,8 @@ if video_inference == True:
     frames, loopTime, initTime = 0, time.time(), time.time()
     while(True):
         ret, image_3c = cap.read()
+        image_3c = cv2.flip(image_3c, 0)
+        image_3c = cv2.flip(image_3c, 1)
         if not ret:
             break
         print('--> Running model for video inference')

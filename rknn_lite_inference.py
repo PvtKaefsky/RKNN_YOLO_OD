@@ -34,6 +34,8 @@ if __name__ == '__main__':
         cap = cv2.VideoCapture(video_path)
         while(True):
             ret, image_3c = cap.read()
+            image_3c = cv2.flip(image_3c, 0)
+            image_3c = cv2.flip(image_3c, 1)
             if not ret:
                 break
             print('--> Running model for video inference')
