@@ -1,4 +1,4 @@
-import time, numpy as np, cv2
+import os, time, numpy as np, cv2
 
 def xywh2xyxy(x):
     y = np.copy(x)
@@ -104,23 +104,17 @@ def non_max_suppression(
             break
     return output
 
-def letterbox(im, new_shape=(640, 640), color=(114, 114, 114), auto=True, scaleFill=False, scaleup=True, stride=32):
-    shape = im.shape[:2]
+def letterbox(im, new_shape=(640, 640), color=(114, 114, 114), auto=False, scaleFill=False, scaleup=True, stride=32):
+    shape = im.shape[:2]  # current shape [height, width]
     if isinstance(new_shape, int):
         new_shape = (new_shape, new_shape)
     r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
     if not scaleup:
         r = min(r, 1.0)
-    ratio = r, r
+    ratio = r, r  # width, height ratios
     new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
     dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]
-    if auto:
-        dw, dh = np.mod(dw, stride), np.mod(dh, stride)
-    elif scaleFill:
-        dw, dh = 0.0, 0.0
-        new_unpad = (new_shape[1], new_shape[0])
-        ratio = new_shape[1] / shape[1], new_shape[0] / shape[0]
-    dw /= 2
+    dw /= 2  # divide padding into 2 sides
     dh /= 2
     if shape[::-1] != new_unpad:
         im = cv2.resize(im, new_unpad, interpolation=cv2.INTER_LINEAR)
@@ -131,29 +125,30 @@ def letterbox(im, new_shape=(640, 640), color=(114, 114, 114), auto=True, scaleF
 
 def preprocess(image, input_width, input_height):
     image_3c = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    image_3c, _, _ = letterbox(image_3c, new_shape=[input_width, input_height], auto=False)
+    image_3c, ratio, (dw, dh) = letterbox(image_3c, new_shape=(input_width, input_height), auto=False)
     image_4c = np.array(image_3c) / 255.0
-    image_4c = np.transpose(image_4c, (2, 0, 1))
+    image_4c = np.transpose(image_4c, (2, 0, 1))  # HWC -> CHW
     image_4c = np.expand_dims(image_4c, axis=0).astype(np.float32)
     image_4c = np.ascontiguousarray(image_4c)
-    return image_4c, image_3c
+    return image_4c, image_3c, ratio, (dw, dh)
 
-def postprocess(preds, img, orig_img, OBJ_THRESH, NMS_THRESH, classes=None):
-    p = non_max_suppression(preds[0],
-                            OBJ_THRESH,
-                            NMS_THRESH,
-                            agnostic=False,
-                            max_det=300,
-                            nc=classes,
-                            classes=None)
+def postprocess(preds, img, orig_img, conf_thres, iou_thres, classes=None, ratio_pad=None):
+    pred = non_max_suppression(preds[0], conf_thres, iou_thres, nc=classes)
     results = []
-    for i, pred in enumerate(p):
+    for i, det in enumerate(pred):
         shape = orig_img.shape
-        if not len(pred):
+        if not len(det):
             results.append([[], []])
             continue
-        pred[:, :4] = scale_boxes(img.shape[2:], pred[:, :4], shape).round()
-        results.append([pred[:, :6], shape[:2]])
+        if ratio_pad is not None:
+            ratio, (dw, dh) = ratio_pad
+            det[:, [0, 2]] -= dw
+            det[:, [1, 3]] -= dh
+            det[:, :4] /= ratio[0]
+            clip_boxes(det[:, :4], shape)
+        else:
+            det[:, :4] = scale_boxes(img.shape[2:], det[:, :4], shape).round()
+        results.append([det[:, :6], shape[:2]])
     return results
 
 def gen_color(class_num):
@@ -168,30 +163,22 @@ def gen_color(class_num):
             break
     return color_list
 
-def vis_result(image_3c, results, colorlist, CLASSES, result_path):
-    boxes, shape = results
-    # Переводим в BGR для дальнейших opencv-операций
-    image_3c = cv2.cvtColor(image_3c, cv2.COLOR_RGB2BGR)
-    vis_img = image_3c.copy()
+def vis_result(image_bgr, results, colorlist, CLASSES, result_path):
+    os.makedirs(result_path, exist_ok=True)
+    boxes, _ = results
+    vis_img = image_bgr.copy()
     cls_list = []
-    center_list = []
     for i, box in enumerate(boxes):
-        cls = int(box[-1])
-        cls_list.append(cls)
-        cv2.rectangle(vis_img, (int(box[0]), int(box[1])),
-                      (int(box[2]), int(box[3])), (0, 0, 255), 3, 4)
-        cv2.putText(vis_img, f"{CLASSES[cls]}:{round(box[4],2)}",
-                    (int(box[0]), int(box[1])),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    1, (0, 255, 0), 2)
-    for j in range(len(center_list)):
-        cv2.circle(vis_img, (center_list[j][0], center_list[j][1]), 
-                   radius=5, color=(0, 0, 255), thickness=-1)
-    vis_img = np.concatenate([image_3c, vis_img], axis=1)
-    for i in range(len(CLASSES)):
-        num = cls_list.count(i)
-        if num != 0:
-            print(f"Found {num} {CLASSES[i]}")
-    cv2.imwrite(f"./{result_path}/origin_image.jpg", image_3c)
-    cv2.imwrite(f"./{result_path}/visual_image.jpg", vis_img)
+        x1, y1, x2, y2, conf, cls_id = box[:6]
+        cls_id = int(cls_id)
+        cls_list.append(cls_id)
+        color = colorlist[cls_id]
+        label = f"{CLASSES[cls_id]}: {round(conf, 2)}"
+        cv2.rectangle(vis_img, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
+        cv2.putText(vis_img, label, (int(x1), int(y1) - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
+    for cls_id in set(cls_list):
+        print(f"Found {cls_list.count(cls_id)} × {CLASSES[cls_id]}")
+    cv2.imwrite(os.path.join(result_path, "origin_image.jpg"), image_bgr)
+    cv2.imwrite(os.path.join(result_path, "visual_image.jpg"), vis_img)
     return vis_img

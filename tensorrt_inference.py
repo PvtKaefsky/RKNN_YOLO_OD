@@ -13,8 +13,8 @@ from utils import *
 # Параметры модели
 conf_thres = 0.25
 iou_thres = 0.45
-input_width = 1280
-input_height = 736
+input_width = 640
+input_height = 480
 model_name = 'yolov8n'
 model_path = "./model"
 result_path = "./result"
